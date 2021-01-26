@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text.Json;
+
 using itunes_console.models;
-using itunes_console.repository;
+using itunes_console.services;
+
 
 namespace itunes_console
 {
@@ -12,26 +11,17 @@ namespace itunes_console
     {
         static void Main(string[] args)
         {
-            SearchResultCache repository = new SearchResultCache();
             Console.WriteLine("Исполнитель:");
             string artist = Console.ReadLine();
 
-            string url = "https://itunes.apple.com/search?entity=album&limit=6&term=" + artist;
-            using (var webClient = new WebClient())
-            {
-                try
-                {
-                    var responce = webClient.DownloadString(url).Replace("\n", "").Replace(" ", "");
-                    SearchResult searchResult = JsonSerializer.Deserialize<SearchResult>(responce);
-                    List<SearchResultInfo> searchResultInfos = searchResult.results.Where(x => x.collectionType == "Album").ToList();
-                    repository.save(artist, searchResultInfos);
-                    showResults(searchResultInfos);
-                }
-                catch (WebException)
-                {
-                    showResults(repository.load(artist), true);
-                }
-            }
+            Search search = new Search();
+
+            List<SearchResultInfo> results = search.searchByArtist(artist);
+            bool loadFromCache = results.Count == 0;
+            if (loadFromCache)
+                results = search.loadFromCache(artist);
+
+            showResults(results, loadFromCache);
         }
 
         static void showResults(List<SearchResultInfo> searchResults, bool cached = false)
