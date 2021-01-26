@@ -1,3 +1,4 @@
 /.vs
 /itunes-console/bin
-/itunes-console/obj
+/itunes-console/obj/Debug
+/itunes-console/obj/project.nuget.cache
